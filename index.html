@@ -1,64 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>JJK: Cursed Technique</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; }
-    
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Antique&family=Rajdhani:wght@300;500;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Rajdhani', 'Courier New', sans-serif;
+        }
+
         #ui {
             position: absolute;
-            top: 10%;
+            top: 5%;
             width: 100%;
             text-align: center;
             color: #fff;
             pointer-events: none;
             z-index: 10;
         }
-        
-        h1 { 
-            font-size: 3rem; margin: 0; letter-spacing: 10px; 
-            font-weight: 900; 
-            text-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(to bottom, #fff, #888);
+
+        h1 {
+            font-size: 4.5rem;
+            margin: 0;
+            letter-spacing: 18px;
+            font-weight: 900;
+            font-family: 'Zen Antique', serif;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+            background: linear-gradient(to bottom, #fff 0%, #888 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
-        #technique-name { 
-            font-size: 1.2rem; color: #00ffff; margin-top: 15px; 
-            font-weight: bold; letter-spacing: 4px;
+
+        #technique-name {
+            font-size: 1.6rem;
+            color: #00ffff;
+            margin-top: 8px;
+            font-weight: 700;
+            letter-spacing: 10px;
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            text-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+            font-family: 'Rajdhani', sans-serif;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
         }
 
-        /* Large Centered Camera Hub - Taller for Reel Context */
+        #technique-sub {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.45);
+            margin-top: 4px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-weight: 300;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* Screen flash overlay */
+        #flash-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.05s ease-out;
+        }
+
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-sizing: border-box;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-color: rgba(0, 255, 255, 0.4);
+            border-style: solid;
+        }
+
+        .top-left {
+            top: 20px;
+            left: 20px;
+            border-width: 2px 0 0 2px;
+        }
+
+        .top-right {
+            top: 20px;
+            right: 20px;
+            border-width: 2px 2px 0 0;
+        }
+
+        .bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-width: 0 0 2px 2px;
+        }
+
+        .bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-width: 0 2px 2px 0;
+        }
+
         #video-container {
             position: absolute;
-            bottom: 2%;
-            left: 18%;
-            transform: translateX(-50%) scaleX(-1);
-            width: 85vw;
-            max-width: 450px;
-            height: 42vh; 
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            z-index: 20;
+            bottom: 30px;
+            right: 30px;
+            width: 320px;
+            height: 240px; 
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            z-index: 100;
             background-color: #000; 
-            border-radius: 25px;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            transform: scaleX(-1);
         }
 
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+
+        #output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
 
         #grain {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 5;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
         }
+
+        /* ── KANJI FLASH OVERLAY ─────────────────────────── */
+        #kanji-overlay {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            font-size: 22vw;
+            font-family: 'Zen Antique', serif;
+            pointer-events: none;
+            z-index: 200;
+            opacity: 0;
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+        }
+        @keyframes kanjiCrash {
+            0%   { opacity: 1;   transform: translate(-50%,-50%) scale(2.2); filter: blur(8px); }
+            15%  { opacity: 1;   transform: translate(-50%,-50%) scale(1.0); filter: blur(0px); }
+            60%  { opacity: 0.8; transform: translate(-50%,-50%) scale(0.97); }
+            100% { opacity: 0;   transform: translate(-50%,-50%) scale(0.9); filter: blur(4px); }
+        }
+        .kanji-active {
+            animation: kanjiCrash 1.4s cubic-bezier(0.16,1,0.3,1) forwards !important;
+        }
     </style>
-    
+
     <script type="importmap">
         {
             "imports": {
@@ -69,15 +186,26 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
 </head>
+
 <body>
 
+    <div id="kanji-overlay"></div>
     <div id="grain"></div>
+    <div id="hud">
+        <div class="hud-corner top-left"></div>
+        <div class="hud-corner top-right"></div>
+        <div class="hud-corner bottom-left"></div>
+        <div class="hud-corner bottom-right"></div>
+    </div>
 
+    <div id="flash-overlay"></div>
     <div id="ui">
         <h1>呪術廻戦</h1>
-        <div id="technique-name">CURSED ENERGY</div>
+        <div id="technique-name">RESONANCE DETECTED</div>
+        <div id="technique-sub">STAND BY</div>
     </div>
 
     <div id="video-container">
@@ -85,209 +213,642 @@
         <canvas id="output_canvas"></canvas>
     </div>
 
-<script type="module">
-    import * as THREE from 'three';
-    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
+        import { GestureEngine }   from './gesture_engine.js';
 
-    // --- Scene & Rendering ---
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 55;
+        // --- Scene & Rendering ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 55;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    document.body.appendChild(renderer.domElement);
-
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-    composer.addPass(bloomPass);
-
-    const COUNT = 20000;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(COUNT * 3);
-    const colors = new Float32Array(COUNT * 3);
-    const sizes = new Float32Array(COUNT);
-    
-    const targetPositions = new Float32Array(COUNT * 3);
-    const targetColors = new Float32Array(COUNT * 3);
-    const targetSizes = new Float32Array(COUNT);
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-    scene.add(particles);
-
-    // Technique Functions 
-    function getRed(i) {
-        if(i < COUNT * 0.1) {
-            const r = Math.random() * 9;
-            const theta = Math.random() * 6.28; const phi = Math.acos(2 * Math.random() - 1);
-            return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 3, g: 0.1, b: 0.1, s: 2.5 };
-        } else {
-            const armCount = 3; const t = (i / COUNT); 
-            const angle = t * 15 + ((i % armCount) * (Math.PI * 2 / armCount));
-            const radius = 2 + (t * 40); 
-            return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * (10 * t), r: 0.8, g: 0, b: 0, s: 1.0 };
-        }
-    }
-
-    function getVoid(i) {
-        if (i < COUNT * 0.15) {
-            const angle = Math.random() * Math.PI * 2;
-            return { x: 26 * Math.cos(angle), y: 26 * Math.sin(angle), z: (Math.random()-0.5) * 1, r: 1, g: 1, b: 1, s: 2.5 };
-        } else {
-            const radius = 30 + Math.random() * 90;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi), r: 0.1, g: 0.6, b: 1.0, s: 0.7 };
-        }
-    }
-
-    function getPurple(i) {
-        if (Math.random() > 0.8) return { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100, z: (Math.random() - 0.5) * 100, r: 0.5, g: 0.5, b: 0.7, s: 0.8 };
-        const r = 20; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
-        return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.6, g: 0.5, b: 1.0, s: 2.5 };
-    }
-
-    function getShrine(i) {
-        const total = COUNT;
-        if (i < total * 0.3) return { x: (Math.random()-0.5)*80, y: -15, z: (Math.random()-0.5)*80, r: 0.4, g: 0, b: 0, s: 0.8 };
-        else if (i < total * 0.4) {
-            const px = ((i%4)<2?1:-1)*12; const pz = ((i%4)%2==0?1:-1)*8;
-            return { x: px+(Math.random()-0.5)*2, y: -15+Math.random()*30, z: pz+(Math.random()-0.5)*2, r: 0.2, g: 0.2, b: 0.2, s: 0.6 };
-        } else if (i < total * 0.6) {
-            const t = Math.random() * Math.PI * 2; const rad = Math.random() * 30;
-            const curve = Math.pow(rad/30, 2) * 10; 
-            return { x: rad*Math.cos(t), y: 15 - curve + (Math.random()*2), z: rad*Math.sin(t)*0.6, r: 0.6, g: 0, b: 0, s: 0.6 };
-        } else return { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
-    }
-
-    // Hand Tracking
-    let currentTech = 'neutral';
-    let shakeIntensity = 0;
-    const videoElement = document.querySelector('.input_video');
-    const canvasElement = document.getElementById('output_canvas');
-    const canvasCtx = canvasElement.getContext('2d');
-    let glowColor = '#00ffff';
-
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7 });
-
-    hands.onResults((results) => {
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        let detected = 'neutral';
-
-        if (results.multiHandLandmarks) {
-            results.multiHandLandmarks.forEach((lm) => {
-                drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 5});
-                drawLandmarks(canvasCtx, lm, {color: '#fff', lineWidth: 1, radius: 2});
-
-                const isUp = (t, p) => lm[t].y < lm[p].y;
-                const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
-                
-                if (pinch < 0.04) detected = 'purple';
-                else if (isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18)) detected = 'shrine';
-                else if (isUp(8,6) && isUp(12,10) && !isUp(16,14)) detected = 'void';
-                else if (isUp(8,6) && !isUp(12,10)) detected = 'red';
-            });
-        }
-        updateState(detected);
-    });
-
-    function updateState(tech) {
-        if(currentTech === tech) return;
-        currentTech = tech;
-        const nameEl = document.getElementById('technique-name');
-        shakeIntensity = tech !== 'neutral' ? 0.4 : 0;
-
-        if(tech === 'shrine') { glowColor = '#ff0000'; nameEl.innerText = "Domain Expansion: Malevolent Shrine"; bloomPass.strength = 2.5; }
-        else if(tech === 'purple') { glowColor = '#bb00ff'; nameEl.innerText = "Secret Technique: Hollow Purple"; bloomPass.strength = 4.0; }
-        else if(tech === 'void') { glowColor = '#00ffff'; nameEl.innerText = "Domain Expansion: Infinite Void"; bloomPass.strength = 2.0; }
-        else if(tech === 'red') { glowColor = '#ff3333'; nameEl.innerText = "Reverse Cursed Technique: Red"; bloomPass.strength = 2.5; }
-        else { glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0; }
-
-        for(let i=0; i<COUNT; i++) {
-            let p;
-            if(tech === 'neutral') {
-                if(i < COUNT * 0.05) {
-                    const r = 15 + Math.random()*20; const t = Math.random()*6.28; const ph = Math.random()*3.14;
-                    p = { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
-                } else p = { x:0, y:0, z:0, r:0, g:0, b:0, s:0 };
-            }
-            else if(tech === 'red') p = getRed(i);
-            else if(tech === 'void') p = getVoid(i);
-            else if(tech === 'purple') p = getPurple(i);
-            else if(tech === 'shrine') p = getShrine(i);
-            
-            targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-            targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-            targetSizes[i] = p.s;
-        }
-    }
-
-    const cameraUtils = new Camera(videoElement, {
-        onFrame: async () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            await hands.send({image: videoElement});
-        }, width: 640, height: 480
-    });
-    cameraUtils.start();
-
-    // Animation
-    function animate() {
-        requestAnimationFrame(animate);
-        
-        if (shakeIntensity > 0) {
-            renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*shakeIntensity*40}px, ${(Math.random()-0.5)*shakeIntensity*40}px)`;
-        } else {
-            renderer.domElement.style.transform = 'translate(0,0)';
-        }
-
-        const pos = particles.geometry.attributes.position.array;
-        const col = particles.geometry.attributes.color.array;
-        const siz = particles.geometry.attributes.size.array;
-
-        for(let i=0; i<COUNT*3; i++) {
-            pos[i] += (targetPositions[i] - pos[i]) * 0.1;
-            col[i] += (targetColors[i] - col[i]) * 0.1;
-        }
-        for(let i=0; i<COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.1;
-
-        particles.geometry.attributes.position.needsUpdate = true;
-        particles.geometry.attributes.color.needsUpdate = true;
-        particles.geometry.attributes.size.needsUpdate = true;
-        
-        // UPDATED ROTATION LOGIC: Locking rotation for Shrine
-        if(currentTech === 'red') {
-            particles.rotation.z -= 0.1;
-        } else if (currentTech === 'purple') {
-            particles.rotation.z += 0.2; 
-            particles.rotation.y += 0.05;
-        } else if (currentTech === 'shrine') {
-            // FORCE UPRIGHT: Reset and freeze all rotations
-            particles.rotation.set(0, 0, 0); 
-        } else {
-            // Default Neutral rotation
-            particles.rotation.y += 0.005;
-        }
-
-        composer.render();
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(window.innerWidth, window.innerHeight);
-    });
-</script>
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.domElement.style.position = 'fixed';
+        renderer.domElement.style.top = '0';
+        renderer.domElement.style.left = '0';
+        renderer.domElement.style.zIndex = '1';
+        document.body.appendChild(renderer.domElement);
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        composer.addPass(bloomPass);
+
+        // ── CHROMATIC ABERRATION PASS ─────────────────────────────────────
+        const chromaShader = {
+            uniforms: { tDiffuse: { value: null }, amount: { value: 0.0 } },
+            vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+            fragmentShader: `
+                uniform sampler2D tDiffuse;
+                uniform float amount;
+                varying vec2 vUv;
+                void main(){
+                    vec2 c = vUv - 0.5;
+                    float d = length(c);
+                    vec2 off = normalize(c) * amount * d * 2.0;
+                    float r = texture2D(tDiffuse, vUv + off).r;
+                    float g = texture2D(tDiffuse, vUv).g;
+                    float b = texture2D(tDiffuse, vUv - off).b;
+                    gl_FragColor = vec4(r, g, b, 1.0);
+                }`
+        };
+        const chromaPass = new ShaderPass(chromaShader);
+        composer.addPass(chromaPass);
+        let chromaTarget = 0.0;
+
+        // ── WEB AUDIO SOUND ENGINE ────────────────────────────────────────
+        const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+        function mkNoise(dur, decay, vol=0.6) {
+            const buf = AC.createBuffer(1, AC.sampleRate * dur, AC.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/AC.sampleRate*decay);
+            const src = AC.createBufferSource(); src.buffer = buf;
+            const g = AC.createGain(); g.gain.value = vol;
+            src.connect(g); g.connect(AC.destination); src.start(); return g;
+        }
+        function mkOsc(freq, type, dur, decay, vol=0.4, freqEnd=null) {
+            const o = AC.createOscillator(); o.type = type;
+            o.frequency.setValueAtTime(freq, AC.currentTime);
+            if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, AC.currentTime + dur);
+            const g = AC.createGain();
+            g.gain.setValueAtTime(vol, AC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+            o.connect(g); g.connect(AC.destination);
+            o.start(); o.stop(AC.currentTime + dur);
+        }
+        function playSound(tech) {
+            if (AC.state === 'suspended') AC.resume();
+            if (tech==='red')        { mkNoise(0.8,8,0.7); mkOsc(90,'sine',0.6,8,0.5,18); mkOsc(200,'sawtooth',0.15,20,0.3); }
+            else if (tech==='void')  { mkOsc(55,'sine',2.5,1.2,0.35); mkOsc(110,'sine',2.0,1.5,0.2); mkOsc(220,'triangle',1.8,2,0.1); }
+            else if (tech==='purple'){ mkNoise(0.5,6,0.6); mkOsc(60,'sine',0.8,5,0.5,15); mkOsc(440,'square',0.2,25,0.2); }
+            else if (tech==='shrine'){ mkOsc(40,'sine',3.0,0.8,0.4); mkOsc(80,'triangle',2.5,1.0,0.2); mkNoise(1.5,3,0.2); }
+            else if (tech==='blackflash') { mkNoise(0.3,30,1.0); mkOsc(60,'sawtooth',0.25,30,0.6,8); mkOsc(800,'square',0.1,50,0.3); }
+            else if (tech==='fuga') { mkOsc(180,'sawtooth',0.6,8,0.5,900); mkNoise(0.6,5,0.4); }
+            else if (tech==='cleave'){ mkNoise(0.25,20,0.5); mkOsc(400,'sawtooth',0.2,25,0.3,60); }
+            else if (tech==='worldslash') { mkNoise(1.0,4,0.8); mkOsc(35,'sine',1.2,3,0.6,12); mkOsc(600,'square',0.15,40,0.3); }
+            else if (tech==='boogie'){ mkOsc(880,'square',0.12,40,0.6); mkOsc(440,'square',0.08,50,0.4); mkNoise(0.1,40,0.3); }
+            else if (tech==='nue')   { mkOsc(350,'sawtooth',0.4,8,0.3,700); mkOsc(175,'triangle',0.6,6,0.2); }
+        }
+
+        // ── KANJI FLASH ───────────────────────────────────────────────────
+        const kanjiEl = document.getElementById('kanji-overlay');
+        const techKanji = {
+            shrine:'呪域展開', purple:'紫', void:'無量空処', red:'赤',
+            fuga:'火矢', cleave:'解', worldslash:'天地摩滅',
+            blackflash:'黒閃', boogie:'芳', nue:'鵺'
+        };
+        const techKanjiColor = {
+            shrine:'#cc0000', purple:'#aa00ff', void:'#0088ff', red:'#ff2200',
+            fuga:'#ffaa00', cleave:'#ddddff', worldslash:'#00ccff',
+            blackflash:'#5500bb', boogie:'#ffee00', nue:'#ffcc00'
+        };
+        function showKanji(tech) {
+            const k = techKanji[tech]; if (!k) return;
+            kanjiEl.textContent = k;
+            kanjiEl.style.color = techKanjiColor[tech] || '#fff';
+            kanjiEl.style.textShadow = `0 0 80px ${techKanjiColor[tech]||'#fff'}, 0 0 160px ${techKanjiColor[tech]||'#fff'}`;
+            kanjiEl.classList.remove('kanji-active');
+            void kanjiEl.offsetWidth; // force reflow
+            kanjiEl.classList.add('kanji-active');
+        }
+
+        const COUNT = 20000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(COUNT * 3);
+        const colors = new Float32Array(COUNT * 3);
+        const sizes = new Float32Array(COUNT);
+
+        const targetPositions = new Float32Array(COUNT * 3);
+        const targetColors = new Float32Array(COUNT * 3);
+        const targetSizes = new Float32Array(COUNT);
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+        scene.add(particles);
+
+        // ═══════════════════════════════════════════════════════
+        //  TECHNIQUE PARTICLE GENERATORS
+        //  Each function returns {x, y, z, r, g, b, s}
+        // ═══════════════════════════════════════════════════════
+
+        // RED — Repulsive force shockwave expanding radially
+        function getRed(i) {
+            if (i < COUNT * 0.08) {
+                // Blinding crimson core
+                const rc = Math.random() * 6;
+                const tc = Math.random() * 6.28, pc = Math.acos(2 * Math.random() - 1);
+                return { x: rc * Math.sin(pc) * Math.cos(tc), y: rc * Math.sin(pc) * Math.sin(tc), z: rc * Math.cos(pc), r: 6, g: 6, b: 6, s: 4.0 };
+            } else if (i < COUNT * 0.25) {
+                // Shockwave ring — thin disc of red energy
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 28 + (Math.random() - 0.5) * 4;
+                return { x: radius * Math.cos(angle), y: (Math.random() - 0.5) * 3, z: radius * Math.sin(angle), r: 2.0, g: 0.05, b: 0, s: 2.0 };
+            } else {
+                // Radial debris blasted outward
+                const angle = Math.random() * Math.PI * 2;
+                const elev = (Math.random() - 0.5) * Math.PI * 0.5;
+                const dist = 35 + Math.random() * 30;
+                return { x: dist * Math.cos(elev) * Math.cos(angle), y: dist * Math.sin(elev), z: dist * Math.cos(elev) * Math.sin(angle), r: 1.5, g: 0.0, b: 0.0, s: 1.0 };
+            }
+        }
+
+        // INFINITE VOID — Crushing space vortex, infinite stimuli
+        function getVoid(i) {
+            if (i < COUNT * 0.05) {
+                // Blinding singularity at center
+                const rv = Math.random() * 3;
+                const tv = Math.random() * 6.28, pv = Math.acos(2 * Math.random() - 1);
+                return { x: rv * Math.sin(pv) * Math.cos(tv), y: rv * Math.sin(pv) * Math.sin(tv), z: rv * Math.cos(pv), r: 5, g: 5, b: 8, s: 3.5 };
+            } else if (i < COUNT * 0.35) {
+                // Spiral vortex arms sucking in
+                const arm = Math.floor(Math.random() * 3);
+                const t = Math.random() * Math.PI * 4;
+                const r = 5 + t * 4.5;
+                const offset = (arm / 3) * Math.PI * 2;
+                return { x: r * Math.cos(t + offset), y: (Math.random() - 0.5) * 20, z: r * Math.sin(t + offset), r: 0.2, g: 0.5, b: 1.5, s: 1.2 };
+            } else if (i < COUNT * 0.5) {
+                // Event horizon ring
+                const angle = Math.random() * Math.PI * 2;
+                const rh = 38 + (Math.random() - 0.5) * 3;
+                return { x: rh * Math.cos(angle), y: (Math.random() - 0.5) * 2, z: rh * Math.sin(angle), r: 1, g: 2, b: 5, s: 2.5 };
+            } else {
+                // Deep cosmic background
+                const radius = 60 + Math.random() * 80;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi), r: 0.05, g: 0.1, b: 0.6, s: 0.8 };
+            }
+        }
+
+        // HOLLOW PURPLE — Massive destructive orb
+        function getPurple(i) {
+            if (i < COUNT * 0.1) {
+                // Dense white-hot core
+                const rp = Math.random() * 5;
+                const tp = Math.random() * 6.28, pp = Math.acos(2 * Math.random() - 1);
+                return { x: rp * Math.sin(pp) * Math.cos(tp), y: rp * Math.sin(pp) * Math.sin(tp), z: rp * Math.cos(pp), r: 4, g: 4, b: 5, s: 3.0 };
+            } else if (i < COUNT * 0.5) {
+                // Main orb shell — dense purple sphere
+                const rp2 = 15 + Math.random() * 5;
+                const tp2 = Math.random() * 6.28, pp2 = Math.acos(2 * Math.random() - 1);
+                return { x: rp2 * Math.sin(pp2) * Math.cos(tp2), y: rp2 * Math.sin(pp2) * Math.sin(tp2), z: rp2 * Math.cos(pp2), r: 1.2, g: 0.0, b: 2.5, s: 2.0 };
+            } else {
+                // Orbiting debris/annihilation trail
+                const angle = Math.random() * Math.PI * 2;
+                const tilt = (Math.random() - 0.5) * Math.PI;
+                const ro = 25 + Math.random() * 30;
+                return { x: ro * Math.cos(angle) * Math.cos(tilt), y: ro * Math.sin(tilt), z: ro * Math.sin(angle) * Math.cos(tilt), r: 0.6, g: 0.0, b: 1.0, s: 0.8 };
+            }
+        }
+
+        // MALEVOLENT SHRINE — Infinite Buddhist cursed cuts
+        function getShrine(i) {
+            if (i < COUNT * 0.15) {
+                // Bone-white pillars at 4 cardinal points
+                const pillar = Math.floor((i / COUNT) * 4) % 4;
+                const angle = (pillar / 4) * Math.PI * 2;
+                const height = (Math.random() - 0.1) * 60;
+                return { x: Math.cos(angle) * 20, y: height, z: Math.sin(angle) * 20, r: 1.0, g: 0.9, b: 0.7, s: 0.7 };
+            } else if (i < COUNT * 0.35) {
+                // Dark crimson floor plane with cursed markings
+                const fx = (Math.random() - 0.5) * 100, fz = (Math.random() - 0.5) * 100;
+                return { x: fx, y: -28, z: fz, r: 0.4, g: 0, b: 0, s: 0.4 };
+            } else if (i < COUNT * 0.6) {
+                // Radial cursed cuts slashing outward (∞ pattern)
+                const cutAngle = (i / COUNT) * Math.PI * 8;
+                const cutDist = 10 + Math.random() * 45;
+                return { x: cutDist * Math.cos(cutAngle), y: (Math.random() - 0.5) * 40, z: cutDist * Math.sin(cutAngle), r: 0.8, g: 0.0, b: 0.0, s: 0.6 };
+            } else {
+                // Blood helix spiraling upward
+                const bt = (i / COUNT) * Math.PI * 12;
+                const br = 12 + Math.sin(bt * 0.3) * 6;
+                return { x: br * Math.cos(bt), y: -28 + (bt / (Math.PI * 12)) * 80, z: br * Math.sin(bt), r: 0.7, g: 0.0, b: 0.0, s: 0.5 };
+            }
+        }
+
+        // FUGA (OPEN) — Divine flame arrow
+        function getFuga(i) {
+            if (i < COUNT * 0.15) {
+                // Central fire arrow shaft — blazing horizontal beam
+                const pos = (i / (COUNT * 0.15)) * 120 - 60;
+                return { x: pos, y: (Math.random() - 0.5) * 1.5, z: (Math.random() - 0.5) * 1.5, r: 4.0, g: 4.0, b: 3.5, s: 2.5 };
+            } else if (i < COUNT * 0.4) {
+                // Fire cone expanding behind arrowhead
+                const pos = (Math.random() - 0.5) * 60;
+                const spread = Math.abs(pos) * 0.4;
+                return { x: pos, y: (Math.random() - 0.5) * spread, z: (Math.random() - 0.5) * spread, r: 2.0, g: 0.4, b: 0.0, s: 1.2 };
+            } else {
+                // Floating embers and fire wisps
+                const ex = (Math.random() - 0.5) * 80;
+                const ey = Math.random() * 30;
+                return { x: ex, y: ey, z: (Math.random() - 0.5) * 20, r: 1.0, g: 0.2, b: 0.0, s: 0.6 };
+            }
+        }
+
+        // CLEAVE & DISMANTLE — Crossing diagonal slash beams
+        function getCleave(i) {
+            const slash = Math.floor(i / (COUNT / 3)) % 3;
+            const angle = slash * (Math.PI / 3) - Math.PI / 3; // 3 different slash directions
+            const along = (i / COUNT) * 160 - 80;
+            const perp = (Math.random() - 0.5) * 1.5;
+            return {
+                x: along * Math.cos(angle) - perp * Math.sin(angle),
+                y: along * Math.sin(angle) + perp * Math.cos(angle),
+                z: (Math.random() - 0.5) * 3,
+                r: 3.0, g: 3.0, b: 3.5, s: 1.5
+            };
+        }
+
+        // WORLD CUTTING SLASH — Reality-splitting vertical rift
+        function getWorldSlash(i) {
+            if (i < COUNT * 0.2) {
+                // Central rift — blinding vertical beam
+                const ry = (i / (COUNT * 0.2)) * 160 - 80;
+                return { x: (Math.random() - 0.5) * 0.8, y: ry, z: (Math.random() - 0.5) * 0.8, r: 5, g: 5, b: 5, s: 3.0 };
+            } else if (i < COUNT * 0.5) {
+                // Shockwave disc perpendicular to slash
+                const angle = Math.random() * Math.PI * 2;
+                const wr = 5 + Math.random() * 40;
+                return { x: wr * Math.cos(angle), y: (Math.random() - 0.5) * 4, z: wr * Math.sin(angle), r: 0.5, g: 1.5, b: 2.5, s: 1.2 };
+            } else {
+                // Reality debris torn away on both sides
+                const side = i % 2 === 0 ? 1 : -1;
+                const wy = (Math.random() - 0.5) * 120;
+                return { x: side * (2 + Math.random() * 25), y: wy, z: (Math.random() - 0.5) * 20, r: 0.2, g: 0.8, b: 1.5, s: 0.8 };
+            }
+        }
+
+        function getBlackFlash(i) {
+            const r = Math.random() > 0.8 ? 2 : 0.1;
+            const dist = Math.random() * 60;
+            const angle = Math.random() * Math.PI * 2;
+            const jitter = (Math.random() - 0.5) * 20;
+            return { 
+                x: (dist + jitter) * Math.cos(angle), 
+                y: (dist + jitter) * Math.sin(angle), 
+                z: (Math.random() - 0.5) * 10, 
+                r: r, g: 0, b: 0, s: 2.0 
+            };
+        }
+
+        function getBoogie(i) {
+            const side = i % 2 === 0 ? 1 : -1;
+            return { 
+                x: side * (30 + Math.random() * 40), 
+                y: (Math.random() - 0.5) * 100, 
+                z: (Math.random() - 0.5) * 50, 
+                r: 1, g: 1, b: 0, s: 1.0 
+            };
+        }
+
+        function getNue(i) {
+            const t = Date.now() * 0.002 + i;
+            const angle = (i / COUNT) * Math.PI * 2;
+            const r = 20 + Math.sin(t * 0.5) * 30;
+            return { 
+                x: r * Math.cos(angle), 
+                y: Math.sin(t) * 40, 
+                z: Math.cos(t) * 20, 
+                r: 1.0, g: 0.8, b: 0.2, s: 0.8 
+            };
+        }
+
+        // Hand Tracking & Gesture Engine
+        let currentTech = '';
+        let shakeIntensity = 0;
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        let glowColor = '#00ffff';
+
+        const gestureEngine = new GestureEngine(10); // Higher buffer for smoothness
+
+        const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+        hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
+
+        hands.onResults((results) => {
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks) {
+                results.multiHandLandmarks.forEach((lm) => {
+                    drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 5 });
+                    drawLandmarks(canvasCtx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
+                });
+            }
+
+            const detected = gestureEngine.detect(results.multiHandLandmarks);
+            updateState(detected);
+        });
+
+        const flashEl = document.getElementById('flash-overlay');
+        const subEl   = document.getElementById('technique-sub');
+
+        function flashScreen(color) {
+            flashEl.style.backgroundColor = color;
+            flashEl.style.opacity = '0.55';
+            setTimeout(() => { flashEl.style.opacity = '0'; }, 80);
+        }
+
+        function updateState(tech) {
+            if (currentTech === tech) return;
+            currentTech = tech;
+            const nameEl = document.getElementById('technique-name');
+            shakeIntensity = 0;
+
+            const cfg = {
+                shrine:     { color:'#cc0000', bloom:3.5, name:'Domain Expansion: Malevolent Shrine', sub:'Ryomen Sukuna — 呪域展開', shake:0.3, flash:'rgba(200,0,0,0.6)' },
+                purple:     { color:'#aa00ff', bloom:4.5, name:'Secret Technique: Hollow Purple',    sub:'Satoru Gojo — 紫',           shake:0.5, flash:'rgba(140,0,255,0.5)' },
+                void:       { color:'#0088ff', bloom:2.5, name:'Domain Expansion: Infinite Void',    sub:'Satoru Gojo — 無量空処',     shake:0.2, flash:'rgba(0,100,255,0.4)' },
+                red:        { color:'#ff2200', bloom:3.0, name:'Reverse Cursed Technique: Red',      sub:'Satoru Gojo — 赤',           shake:0.4, flash:'rgba(255,30,0,0.5)' },
+                fuga:       { color:'#ffaa00', bloom:5.0, name:'Open: Flame Arrow — Fuga',           sub:'Ryomen Sukuna — 火矢',       shake:0.8, flash:'rgba(255,160,0,0.5)' },
+                cleave:     { color:'#ddddff', bloom:2.0, name:'Cursed Technique: Cleave & Dismantle',sub:'Ryomen Sukuna — 解/捌',     shake:0.2, flash:'rgba(220,220,255,0.3)' },
+                worldslash: { color:'#00ccff', bloom:6.0, name:'World Cutting Slash',                sub:'Ryomen Sukuna — 天地摩滅',   shake:1.2, flash:'rgba(0,200,255,0.6)' },
+                blackflash: { color:'#6600cc', bloom:5.0, name:'Kokusen: Black Flash',               sub:'Yuji Itadori — 黒閃',        shake:1.5, flash:'rgba(0,0,0,0.9)' },
+                boogie:     { color:'#ffee00', bloom:2.5, name:"Boogie Woogie",                      sub:'Aoi Todo — 芳',              shake:1.2, flash:'rgba(255,240,0,0.7)' },
+                nue:        { color:'#ffcc00', bloom:3.5, name:'Ten Shadows: Nue',                   sub:'Megumi Fushiguro — 鵺',     shake:0.0, flash:'rgba(255,200,0,0.3)' },
+                neutral:    { color:'#00ffff', bloom:1.0, name:'Neutral State',                      sub:'STAND BY', shake:0, flash:null },
+            };
+
+            const c = cfg[tech] || cfg.neutral;
+            glowColor = c.color;
+            bloomPass.strength = c.bloom;
+            shakeIntensity = c.shake;
+
+            nameEl.style.color = c.color;
+            nameEl.innerText   = c.name;
+            subEl.innerText    = c.sub;
+
+            if (c.flash && tech !== 'neutral') {
+                flashScreen(c.flash);
+                showKanji(tech);
+                playSound(tech);
+            }
+
+            // Chromatic aberration intensity per technique
+            const chromaMap = {
+                shrine:0.025, purple:0.04, void:0.015, red:0.035,
+                fuga:0.02, cleave:0.03, worldslash:0.06,
+                blackflash:0.08, boogie:0.05, nue:0.02, neutral:0.0
+            };
+            chromaTarget = chromaMap[tech] ?? 0.0;
+
+            for (let i = 0; i < COUNT; i++) {
+                let p;
+                if (tech === 'neutral') {
+                    if (i < COUNT * 0.05) {
+                        const r = 15 + Math.random() * 20; const t = Math.random() * 6.28; const ph = Math.random() * 3.14;
+                        p = { x: r * Math.sin(ph) * Math.cos(t), y: r * Math.sin(ph) * Math.sin(t), z: r * Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
+                    } else p = { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
+                }
+                else if (tech === 'red') p = getRed(i);
+                else if (tech === 'void') p = getVoid(i);
+                else if (tech === 'purple') p = getPurple(i);
+                else if (tech === 'shrine') p = getShrine(i);
+                else if (tech === 'fuga') p = getFuga(i);
+                else if (tech === 'cleave') p = getCleave(i);
+                else if (tech === 'worldslash') p = getWorldSlash(i);
+                else if (tech === 'blackflash') p = getBlackFlash(i);
+                else if (tech === 'boogie') p = getBoogie(i);
+                else if (tech === 'nue') p = getNue(i);
+
+                targetPositions[i * 3] = p.x; targetPositions[i * 3 + 1] = p.y; targetPositions[i * 3 + 2] = p.z;
+                targetColors[i * 3] = p.r; targetColors[i * 3 + 1] = p.g; targetColors[i * 3 + 2] = p.b;
+                targetSizes[i] = p.s;
+            }
+        }
+
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                await hands.send({ image: videoElement });
+            }, width: 640, height: 480
+        });
+        cameraUtils.start();
+
+        // Animation
+        const liveUpdateTechs = new Set(['blackflash', 'nue', 'boogie']);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const now = Date.now();
+            const t = now * 0.001;
+
+            if (shakeIntensity > 0) {
+                renderer.domElement.style.transform = `translate(${(Math.random() - 0.5) * shakeIntensity * 30}px, ${(Math.random() - 0.5) * shakeIntensity * 30}px)`;
+            } else {
+                renderer.domElement.style.transform = 'translate(0,0)';
+            }
+
+            // ─── LIVE TARGET UPDATES FOR DYNAMIC TECHNIQUES ───────────────────────────
+            if (currentTech === 'blackflash') {
+                // TRUE BLACK FLASH: near-black void sphere distorting space
+                // In the anime, Black Flash creates a black spatial distortion
+                for (let i = 0; i < COUNT; i++) {
+                    const phase = (i / COUNT) * Math.PI * 2;
+                    if (i < COUNT * 0.4) {
+                        // Core: pulsing near-BLACK void sphere
+                        const pulse = 6 + Math.sin(t * 15 + phase) * 3;
+                        const a1 = phase + t * 3;
+                        const a2 = Math.acos(Math.min(1, Math.max(-1, 2 * (i / (COUNT * 0.4)) - 1)));
+                        targetPositions[i*3]   = pulse * Math.sin(a2) * Math.cos(a1);
+                        targetPositions[i*3+1] = pulse * Math.sin(a2) * Math.sin(a1);
+                        targetPositions[i*3+2] = pulse * Math.cos(a2);
+                        // Almost always black, rarely shows dark purple distortion flash
+                        const flash = Math.random() > 0.96;
+                        targetColors[i*3]   = flash ? 0.8 : 0.0;
+                        targetColors[i*3+1] = 0.0;
+                        targetColors[i*3+2] = flash ? 1.8 : 0.0;
+                    } else {
+                        // Outer: dark cursed energy streaks
+                        const angle = phase + (Math.random() - 0.5) * 0.8;
+                        const elev  = (Math.random() - 0.5) * Math.PI;
+                        const dist  = 10 + Math.random() * 50;
+                        targetPositions[i*3]   = dist * Math.cos(elev) * Math.cos(angle);
+                        targetPositions[i*3+1] = dist * Math.sin(elev);
+                        targetPositions[i*3+2] = dist * Math.cos(elev) * Math.sin(angle);
+                        // Mostly invisible, occasional dark-purple crackle
+                        const crackle = Math.random() > 0.92;
+                        targetColors[i*3]   = crackle ? 0.4 : 0.0;
+                        targetColors[i*3+1] = 0.0;
+                        targetColors[i*3+2] = crackle ? 1.2 : 0.0;
+                    }
+                }
+            } else if (currentTech === 'nue') {
+                // NUE — Shadow chimera: dark body + yellow electric wings
+                for (let i = 0; i < COUNT; i++) {
+                    const frac = i / COUNT;
+                    if (i < COUNT * 0.35) {
+                        // Wing shape: parabolic arcs, DARK SHADOW colored
+                        const side = i < COUNT * 0.175 ? 1 : -1;
+                        const along = ((i % (COUNT * 0.175 | 0)) / (COUNT * 0.175)) * 2 - 1;
+                        const wing_x = side * along * 42;
+                        const wing_y = -(along * along) * 18 + Math.sin(t * 3.5) * 10;
+                        targetPositions[i*3] = wing_x;
+                        targetPositions[i*3+1] = wing_y;
+                        targetPositions[i*3+2] = (Math.random() - 0.5) * 2;
+                        // Wing edge: bright yellow lightning; inner: near-black shadow
+                        const isEdge = Math.abs(along) > 0.75;
+                        targetColors[i*3]   = isEdge ? (Math.random()>0.5?3:1) : 0.02;
+                        targetColors[i*3+1] = isEdge ? (Math.random()>0.5?3:1) : 0.02;
+                        targetColors[i*3+2] = isEdge ? 0 : 0.01;
+                    } else if (i < COUNT * 0.55) {
+                        // Lightning crackling along wing span
+                        const side = i % 2 === 0 ? 1 : -1;
+                        const lx = side * (20 + Math.random() * 22);
+                        const ly = -(Math.abs(lx/42)) * 18 + Math.sin(t*3.5)*10 + (Math.random()-0.5)*4;
+                        targetPositions[i*3] = lx; targetPositions[i*3+1] = ly;
+                        targetPositions[i*3+2] = (Math.random()-0.5)*5;
+                        const bolt = Math.random() > 0.5 ? 4.0 : 0.5;
+                        targetColors[i*3]=bolt; targetColors[i*3+1]=bolt; targetColors[i*3+2]=0;
+                    } else {
+                        // Body: dark shadow core hovering at center
+                        const bx = (Math.random()-0.5)*8;
+                        const by = (Math.random()-0.5)*12;
+                        targetPositions[i*3]=bx; targetPositions[i*3+1]=by; targetPositions[i*3+2]=(Math.random()-0.5)*4;
+                        const glow = Math.random() > 0.9 ? 0.8 : 0.0;
+                        targetColors[i*3]=glow; targetColors[i*3+1]=glow*0.8; targetColors[i*3+2]=0;
+                    }
+                }
+            } else if (currentTech === 'boogie') {
+                // Lightning bolt connecting two swapping clusters
+                const swap = Math.floor(t * 4) % 2; // swaps every 0.25s
+                for (let i = 0; i < COUNT; i++) {
+                    const frac = i / COUNT;
+                    if (i < COUNT * 0.35) {
+                        // Cluster A
+                        const cx = (swap === 0 ? -1 : 1) * 30 + (Math.random()-0.5)*12;
+                        targetPositions[i*3] = cx;
+                        targetPositions[i*3+1] = (Math.random()-0.5)*40;
+                        targetPositions[i*3+2] = (Math.random()-0.5)*20;
+                        targetColors[i*3]=2; targetColors[i*3+1]=2; targetColors[i*3+2]=0;
+                    } else if (i < COUNT * 0.7) {
+                        // Cluster B
+                        const cx2 = (swap === 0 ? 1 : -1) * 30 + (Math.random()-0.5)*12;
+                        targetPositions[i*3] = cx2;
+                        targetPositions[i*3+1] = (Math.random()-0.5)*40;
+                        targetPositions[i*3+2] = (Math.random()-0.5)*20;
+                        targetColors[i*3]=2; targetColors[i*3+1]=2; targetColors[i*3+2]=0.5;
+                    } else {
+                        // Lightning bolt connecting A to B
+                        const along = (frac - 0.7) / 0.3; // 0 to 1
+                        const lx = ((swap===0?-1:1)*30) + along * ((swap===0?1:-1)*30 - (swap===0?-1:1)*30);
+                        const zigzag = Math.sin(along * Math.PI * 8 + t * 20) * 8;
+                        targetPositions[i*3] = lx;
+                        targetPositions[i*3+1] = zigzag;
+                        targetPositions[i*3+2] = Math.cos(along * Math.PI * 6 + t * 15) * 5;
+                        const bolt = Math.random() > 0.4 ? 4.0 : 1.0;
+                        targetColors[i*3]=bolt; targetColors[i*3+1]=bolt; targetColors[i*3+2]=bolt*0.3;
+                    }
+                }
+            }
+
+            const pos = particles.geometry.attributes.position.array;
+            const col = particles.geometry.attributes.color.array;
+            const siz = particles.geometry.attributes.size.array;
+
+            const lerpSpeed = liveUpdateTechs.has(currentTech) ? 0.35 : 0.08;
+            for (let i = 0; i < COUNT * 3; i++) {
+                pos[i] += (targetPositions[i] - pos[i]) * lerpSpeed;
+                col[i] += (targetColors[i] - col[i]) * lerpSpeed;
+            }
+            for (let i = 0; i < COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.08;
+
+            // ─── ROTATION PHYSICS PER TECHNIQUE ────────────────────────────────────────
+            if (currentTech === 'red') {
+                // Shockwave disc expands — rotate around z-axis like a spinning ring
+                particles.rotation.z -= 0.005;
+                particles.rotation.y += 0.003;
+            } else if (currentTech === 'void') {
+                // Vortex sucking inward — slow continuous spin
+                particles.rotation.y += 0.012;
+                particles.rotation.z += 0.004;
+            } else if (currentTech === 'purple') {
+                // Hollow Purple orb rotating and pulsing
+                particles.rotation.y += 0.018;
+                particles.rotation.z += 0.008;
+            } else if (currentTech === 'shrine') {
+                // Malevolent Shrine is static and anchored
+                particles.rotation.set(0, 0, 0);
+            } else if (currentTech === 'fuga') {
+                // Fire arrow streaking horizontally — slight roll
+                particles.rotation.z += 0.02;
+                particles.rotation.x += 0.005;
+            } else if (currentTech === 'cleave') {
+                // Slash beams — no rotation, they cut clean
+                particles.rotation.set(0, 0, 0);
+            } else if (currentTech === 'worldslash') {
+                // World slash — no rotation, pinned vertical
+                particles.rotation.set(0, 0, 0);
+            } else if (currentTech === 'blackflash' || currentTech === 'nue' || currentTech === 'boogie') {
+                // Live-updated — no object rotation needed
+                particles.rotation.set(0, 0, 0);
+            } else {
+                particles.rotation.y += 0.006;
+            }
+
+            // ─── STATIC TECHNIQUE TURBULENCE ────────────────────────────────────────
+            if (currentTech === 'fuga') {
+                // Fire wisps rising upward
+                for (let i = COUNT * 0.4 | 0; i < COUNT; i++) {
+                    pos[i*3+1] += 0.3;
+                    if (pos[i*3+1] > 40) pos[i*3+1] = -5;
+                }
+            } else if (currentTech === 'void') {
+                // Vortex spiral — pull particles inward slightly
+                for (let i = 0; i < COUNT * 0.35 | 0; i++) {
+                    const ix = pos[i*3], iz = pos[i*3+2];
+                    const angle = Math.atan2(iz, ix) + 0.008;
+                    const dist  = Math.sqrt(ix*ix + iz*iz);
+                    const newDist = Math.max(dist - 0.05, 1);
+                    pos[i*3]   = newDist * Math.cos(angle);
+                    pos[i*3+2] = newDist * Math.sin(angle);
+                    if (newDist < 2) {
+                        // Reset to outer ring when fully sucked in
+                        const resetAngle = Math.random() * Math.PI * 2;
+                        pos[i*3] = 60 * Math.cos(resetAngle);
+                        pos[i*3+2] = 60 * Math.sin(resetAngle);
+                    }
+                }
+            } else if (currentTech === 'shrine') {
+                // Blood spiral slowly rotating
+                for (let i = COUNT * 0.6 | 0; i < COUNT; i++) {
+                    const ix = pos[i*3], iz = pos[i*3+2];
+                    const angle = Math.atan2(iz, ix) + 0.006;
+                    const dist  = Math.sqrt(ix*ix + iz*iz);
+                    pos[i*3]   = dist * Math.cos(angle);
+                    pos[i*3+2] = dist * Math.sin(angle);
+                }
+            }
+
+            particles.geometry.attributes.position.needsUpdate = true;
+            particles.geometry.attributes.color.needsUpdate = true;
+            particles.geometry.attributes.size.needsUpdate = true;
+
+            // Chromatic aberration lerp
+            chromaPass.uniforms.amount.value += (chromaTarget - chromaPass.uniforms.amount.value) * 0.1;
+
+            composer.render();
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
+
 </html>
