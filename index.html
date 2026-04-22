@@ -295,6 +295,9 @@
             else if (tech==='worldslash') { mkNoise(1.0,4,0.8); mkOsc(35,'sine',1.2,3,0.6,12); mkOsc(600,'square',0.15,40,0.3); }
             else if (tech==='boogie'){ mkOsc(880,'square',0.12,40,0.6); mkOsc(440,'square',0.08,50,0.4); mkNoise(0.1,40,0.3); }
             else if (tech==='nue')   { mkOsc(350,'sawtooth',0.4,8,0.3,700); mkOsc(175,'triangle',0.6,6,0.2); }
+            else if (tech==='shadowgarden') { mkOsc(30,'sine',2.0,0.5,0.6); mkNoise(2.0,2,0.3); }
+            else if (tech==='mahoraga') { mkOsc(440,'sine',0.1,40,0.5,880); mkOsc(110,'triangle',1.5,2,0.3); }
+            else if (tech==='ratio') { mkNoise(0.15,50,0.8); mkOsc(600,'sawtooth',0.1,60,0.4,1200); }
         }
 
         // ── KANJI FLASH ───────────────────────────────────────────────────
@@ -302,12 +305,14 @@
         const techKanji = {
             shrine:'呪域展開', purple:'紫', void:'無量空処', red:'赤',
             fuga:'火矢', cleave:'解', worldslash:'天地摩滅',
-            blackflash:'黒閃', boogie:'芳', nue:'鵺'
+            blackflash:'黒閃', boogie:'芳', nue:'鵺',
+            shadowgarden:'嵌合暗翳庭', mahoraga:'布瑠部由良由良', ratio:'十划呪法'
         };
         const techKanjiColor = {
             shrine:'#cc0000', purple:'#aa00ff', void:'#0088ff', red:'#ff2200',
             fuga:'#ffaa00', cleave:'#ddddff', worldslash:'#00ccff',
-            blackflash:'#5500bb', boogie:'#ffee00', nue:'#ffcc00'
+            blackflash:'#5500bb', boogie:'#ffee00', nue:'#ffcc00',
+            shadowgarden:'#330066', mahoraga:'#ffff88', ratio:'#ffff00'
         };
         function showKanji(tech) {
             const k = techKanji[tech]; if (!k) return;
@@ -523,6 +528,37 @@
             };
         }
 
+        function getShadowGarden(i) {
+            if (i < COUNT * 0.4) {
+                // Dark liquid floor
+                return { x: (Math.random()-0.5)*120, y: -30, z: (Math.random()-0.5)*120, r: 0.05, g: 0.0, b: 0.1, s: 0.6 };
+            } else if (i < COUNT * 0.7) {
+                // Rising shadow pillars
+                const p = Math.floor(i / (COUNT * 0.1));
+                const angle = p * 0.8;
+                return { x: Math.cos(angle)*30, y: (Math.random()-0.5)*60, z: Math.sin(angle)*30, r: 0.1, g: 0.0, b: 0.3, s: 1.0 };
+            } else {
+                // Floating shadow wisps
+                return { x: (Math.random()-0.5)*80, y: (Math.random()-0.5)*80, z: (Math.random()-0.5)*80, r: 0.02, g: 0.0, b: 0.05, s: 0.4 };
+            }
+        }
+
+        function getMahoraga(i) {
+            const spoke = Math.floor(i / (COUNT / 8)) % 8;
+            const angle = (spoke / 8) * Math.PI * 2;
+            const dist = (i % (COUNT / 8)) / (COUNT / 8) * 35;
+            if (i % 100 < 20) { // Spoke handles
+                return { x: 35 * Math.cos(angle), y: 35 * Math.sin(angle), z: (Math.random()-0.5)*5, r: 4.0, g: 3.0, b: 0.5, s: 2.0 };
+            }
+            return { x: dist * Math.cos(angle), y: dist * Math.sin(angle), z: (Math.random()-0.5)*2, r: 2.0, g: 1.5, b: 0.2, s: 0.8 };
+        }
+
+        function getRatio(i) {
+            const x = (i / COUNT) * 120 - 60;
+            const isPoint = Math.abs(x - 24) < 1.5; // 7:3 point on a 120 width scale (60 + 24 = 84, 84/120 = 0.7)
+            return { x: x, y: (Math.random()-0.5)*(isPoint?15:2), z: (Math.random()-0.5)*2, r: isPoint?5:2, g: isPoint?5:2, b: isPoint?0:0, s: isPoint?3.0:1.0 };
+        }
+
         // Hand Tracking & Gesture Engine
         let currentTech = '';
         let shakeIntensity = 0;
@@ -576,6 +612,9 @@
                 blackflash: { color:'#6600cc', bloom:5.0, name:'Kokusen: Black Flash',               sub:'Yuji Itadori — 黒閃',        shake:1.5, flash:'rgba(0,0,0,0.9)' },
                 boogie:     { color:'#ffee00', bloom:2.5, name:"Boogie Woogie",                      sub:'Aoi Todo — 芳',              shake:1.2, flash:'rgba(255,240,0,0.7)' },
                 nue:        { color:'#ffcc00', bloom:3.5, name:'Ten Shadows: Nue',                   sub:'Megumi Fushiguro — 鵺',     shake:0.0, flash:'rgba(255,200,0,0.3)' },
+                shadowgarden:{color:'#330066', bloom:4.0, name:'Domain Expansion: Chimera Shadow Garden', sub:'Megumi Fushiguro — 嵌合暗翳庭', shake:0.3, flash:'rgba(20,0,40,0.7)' },
+                mahoraga:   { color:'#ffff88', bloom:3.0, name:'Eight-Handled Wheel: Mahoraga',      sub:'Megumi Fushiguro — 布瑠部由良由良', shake:0.6, flash:'rgba(255,255,100,0.4)' },
+                ratio:      { color:'#ffff00', bloom:4.5, name:'Ratio Technique: 7:3',               sub:'Nanami Kento — 十划呪法',    shake:0.8, flash:'rgba(255,255,0,0.5)' },
                 neutral:    { color:'#00ffff', bloom:1.0, name:'Neutral State',                      sub:'STAND BY', shake:0, flash:null },
             };
 
@@ -620,6 +659,9 @@
                 else if (tech === 'blackflash') p = getBlackFlash(i);
                 else if (tech === 'boogie') p = getBoogie(i);
                 else if (tech === 'nue') p = getNue(i);
+                else if (tech === 'shadowgarden') p = getShadowGarden(i);
+                else if (tech === 'mahoraga') p = getMahoraga(i);
+                else if (tech === 'ratio') p = getRatio(i);
 
                 targetPositions[i * 3] = p.x; targetPositions[i * 3 + 1] = p.y; targetPositions[i * 3 + 2] = p.z;
                 targetColors[i * 3] = p.r; targetColors[i * 3 + 1] = p.g; targetColors[i * 3 + 2] = p.b;
@@ -792,6 +834,13 @@
                 particles.rotation.set(0, 0, 0);
             } else if (currentTech === 'blackflash' || currentTech === 'nue' || currentTech === 'boogie') {
                 // Live-updated — no object rotation needed
+                particles.rotation.set(0, 0, 0);
+            } else if (currentTech === 'mahoraga') {
+                particles.rotation.z += 0.05; // Fast wheel rotation
+                particles.rotation.x = 0.5;
+            } else if (currentTech === 'shadowgarden') {
+                particles.rotation.y += 0.005;
+            } else if (currentTech === 'ratio') {
                 particles.rotation.set(0, 0, 0);
             } else {
                 particles.rotation.y += 0.006;

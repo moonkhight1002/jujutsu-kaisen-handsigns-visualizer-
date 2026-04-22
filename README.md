@@ -11,7 +11,7 @@
 ## 🚀 Key Enhancements in this Version
 
 This version builds upon the original foundation with several major upgrades:
-- **Expanded Technique Roster**: Added **6 new techniques** including *Fuga*, *World Cutting Slash*, *Black Flash*, *Boogie Woogie*, and *Nue*.
+- **Expanded Technique Roster**: Added **9+ new techniques** (Total 13+) including *Fuga*, *World Cutting Slash*, *Mahoraga*, and more.
 - **Refined Gesture Logic**: Implemented a high-precision `GestureEngine` with temporal smoothing to prevent flickering.
 - **Advanced Particle Physics**: Increased particle count to **20,000+** with custom turbulence, vortex, and shockwave behaviors.
 - **Procedural Sound Engine**: Added a real-time audio system that generates unique synthesized sounds for every technique.
@@ -58,6 +58,9 @@ This version builds upon the original foundation with several major upgrades:
 | **Black Flash (黒閃)** | Dark spatial distortion with black/purple lightning. | **Fist**: Tight clench of all fingers. |
 | **Boogie Woogie (芳)** | Instant swap between two golden particle clusters. | **Clap**: Palms nearly touching (Two hands). |
 | **Ten Shadows: Nue (鵺)** | A shadow chimera with electric yellow wings. | **Wings**: Wrists crossed, Index fingers spread. |
+| **Shadow Garden (嵌合暗翳庭)** | A sea of shadows with rising liquid pillars. | **Crossing Palms**: Wrists crossed, palms facing self. |
+| **Mahoraga's Wheel** | A rotating 8-spoke golden ritual wheel. | **Circle**: Thumbs touching, fingers spread wide. |
+| **Ratio Technique (十划呪法)** | A surgical 7:3 neon strike at the weak point. | **L-Shape**: Index forward, Thumb up (one hand). |
 
 ---
 

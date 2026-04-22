@@ -105,6 +105,10 @@ export class GestureEngine {
         // CLEAVE: index + middle + ring up, pinky down
         if (idxExt && midExt && ringExt && !pinkExt) return { gesture: 'cleave' };
 
+        // RATIO: Index forward, Thumb up (L-shape/Gun gesture)
+        const isRatio = idxExt && !midExt && !ringExt && !pinkExt && this.getDist(lm[4], lm[5]) > handScale * 0.8;
+        if (isRatio) return { gesture: 'ratio' };
+
         return { gesture: 'neutral' };
     }
 
@@ -122,8 +126,18 @@ export class GestureEngine {
         const index2Tip = h2[8];
         const indexDist = this.getDist(index1Tip, index2Tip);
 
+        // SHADOW GARDEN: Wrists crossed (palms facing self), fingers spread
+        // Detected by palms very close but fingers pointing in opposite vertical directions
+        if (palmDist < avgScale * 0.8 && Math.abs(h1[12].y - h2[12].y) < avgScale * 0.5) {
+            return 'shadowgarden';
+        }
+
+        // MAHORAGA: Thumbs touching, fingers spread in a wide circular shape
+        if (thumbDist < avgScale * 0.6 && indexDist > avgScale * 2.5) {
+            return 'mahoraga';
+        }
+
         // NUE: wrists crossed close together, index fingertips spread far apart (wing shape)
-        // Checked first — most specific two-hand shape
         if (palmDist < avgScale * 1.2 && indexDist > avgScale * 1.6) {
             return 'nue';
         }
