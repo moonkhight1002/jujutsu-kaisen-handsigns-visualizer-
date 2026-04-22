@@ -78,8 +78,12 @@ export class GestureEngine {
         // 3. Pinch Detection
         const pinchDist  = this.getDist(lm[4], lm[8]);
         const isPinching = pinchDist < handScale * 0.55;
+        
+        // 4. Thumb Extension (Discriminator for Red vs Ratio)
+        const thumbTipToPinkyBase = this.getDist(lm[4], lm[17]);
+        const isThumbExtended = thumbTipToPinkyBase > handScale * 1.2;
 
-        // 4. Crossing Check (Infinite Void)
+        // 5. Crossing Check (Infinite Void)
         const tipDist    = this.getDist(lm[8], lm[12]);
         const baseDist   = this.getDist(lm[5], lm[9]);
         const isCrossing = tipDist < baseDist * 0.75;
@@ -93,21 +97,19 @@ export class GestureEngine {
         if (isPinching && midExt && ringExt && pinkExt) return { gesture: 'purple' };
 
         // BLACK FLASH: ALL 4 fingertips strictly close to their own base joints
-        // Checked AFTER purple so a pinch is never confused with a fist
         if (idxFist && midFist && ringFist && pinkFist) return { gesture: 'blackflash' };
 
-        // RED: only index up, rest wrist-curled
-        if (idxExt && midCurled && ringCurled && pinkCurled) return { gesture: 'red' };
+        // RED: index up, other 3 curled, THUMB TUCKED
+        if (idxExt && midCurled && ringCurled && pinkCurled && !isThumbExtended) return { gesture: 'red' };
+
+        // RATIO: index up, other 3 curled, THUMB EXTENDED (L-shape)
+        if (idxExt && midCurled && ringCurled && pinkCurled && isThumbExtended) return { gesture: 'ratio' };
 
         // MALEVOLENT SHRINE: flat open hand
         if (idxExt && midExt && ringExt && pinkExt) return { gesture: 'shrine' };
 
         // CLEAVE: index + middle + ring up, pinky down
         if (idxExt && midExt && ringExt && !pinkExt) return { gesture: 'cleave' };
-
-        // RATIO: Index forward, Thumb up (L-shape/Gun gesture)
-        const isRatio = idxExt && !midExt && !ringExt && !pinkExt && this.getDist(lm[4], lm[5]) > handScale * 0.8;
-        if (isRatio) return { gesture: 'ratio' };
 
         return { gesture: 'neutral' };
     }
@@ -127,29 +129,30 @@ export class GestureEngine {
         const indexDist = this.getDist(index1Tip, index2Tip);
 
         // SHADOW GARDEN: Wrists crossed (palms facing self), fingers spread
-        // Detected by palms very close but fingers pointing in opposite vertical directions
         if (palmDist < avgScale * 0.8 && Math.abs(h1[12].y - h2[12].y) < avgScale * 0.5) {
             return 'shadowgarden';
         }
 
-        // MAHORAGA: Thumbs touching, fingers spread in a wide circular shape
-        if (thumbDist < avgScale * 0.6 && indexDist > avgScale * 2.5) {
+        // MAHORAGA: Thumbs touching, hands upright, WRISTS CLOSE
+        const h1Upright = h1[8].y < h1[0].y;
+        const h2Upright = h2[8].y < h2[0].y;
+        if (thumbDist < avgScale * 0.8 && palmDist < avgScale * 1.2 && h1Upright && h2Upright) {
             return 'mahoraga';
         }
 
+        // FUGA: thumbs close together, WRISTS SPREAD APART
+        if (thumbDist < avgScale * 0.8 && palmDist > avgScale * 1.6) {
+            return 'fuga';
+        }
+
         // NUE: wrists crossed close together, index fingertips spread far apart (wing shape)
-        if (palmDist < avgScale * 1.2 && indexDist > avgScale * 1.6) {
+        if (palmDist < avgScale * 1.2 && indexDist > avgScale * 2.0) {
             return 'nue';
         }
 
         // BOOGIE WOOGIE: actual clap — palms nearly touching
         if (palmDist < avgScale * 0.6) {
             return 'boogie';
-        }
-
-        // FUGA: thumbs close together, wrists spread apart
-        if (thumbDist < avgScale * 0.7 && palmDist > avgScale * 1.5) {
-            return 'fuga';
         }
 
         // WORLD CUTTING SLASH: hands moderately close, both index fingers pointing up & parallel
