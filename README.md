@@ -84,8 +84,8 @@ This version builds upon the original foundation with several major upgrades:
 ### Installation & Usage
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/reinesana/SAT0RU.git
-   cd SAT0RU
+   git clone https://github.com/moonkhight1002/jujutsu-kaisen-handsigns-visualizer-.git
+   cd jujutsu-kaisen-handsigns-visualizer-
    ```
 2. **Run with Live Server**:
    If using VS Code, install the **Live Server** extension. Right-click `index.html` and select **"Open with Live Server"**.
