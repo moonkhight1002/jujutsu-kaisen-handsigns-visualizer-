@@ -1,7 +1,7 @@
 # 🌌 SAT0RU — JJK Cursed Technique Visualizer (Enhanced)
 
 [![Original Project](https://img.shields.io/badge/Original-reinesana%2FSAT0RU-lightgrey)](https://github.com/reinesana/SAT0RU)
-[![Enhanced Version](https://img.shields.io/badge/Enhanced%20by-HritamMaji-blueviolet)](https://github.com/moonkhight1002)
+[![Enhanced Version](https://img.shields.io/badge/Enhanced%20by-HritamMaji-blueviolet)](https://github.com/moonkhight1002/jujutsu-kaisen-handsigns-visualizer-)
 [![Developer](https://img.shields.io/badge/Powered%20by-Google%20Gemini%203-blue)](https://gemini.google.com/)
 
 **SAT0RU: Enhanced Edition** is a high-performance evolution of the original cursed technique visualizer. While the core concept originated from [reinesana/SAT0RU](https://github.com/reinesana/SAT0RU), this version has been completely overhauled with advanced particle physics, expanded gesture recognition, and procedural audio to provide the ultimate Jujutsu Kaisen experience.
@@ -103,7 +103,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 This project is an enhanced version of the original [SAT0RU](https://github.com/reinesana/SAT0RU) project by **reinesana**.
 
 - **Original Concept & Core Logic**: [reinesana](https://github.com/reinesana)
-- **Enhancements & Refinement**: [HritamMaji](https://github.com/moonkhight1002)
+- **Enhancements & Refinement**: [HritamMaji](https://github.com/moonkhight1002/jujutsu-kaisen-handsigns-visualizer-)
 - **AI-Assisted Development**: Google Gemini 3
 
 ---
