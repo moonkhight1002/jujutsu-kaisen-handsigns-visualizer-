@@ -12,8 +12,10 @@
 
 This version builds upon the original foundation with several major upgrades:
 - **Expanded Technique Roster**: Added **9+ new techniques** (Total 13+) including *Fuga*, *World Cutting Slash*, *Mahoraga*, and more.
-- **Refined Gesture Logic**: Implemented a high-precision `GestureEngine` with temporal smoothing to prevent flickering.
+- **Refined Gesture Logic**: Implemented a high-precision `GestureEngine` with temporal smoothing to prevent flickering and overlaps.
 - **Advanced Particle Physics**: Increased particle count to **20,000+** with custom turbulence, vortex, and shockwave behaviors.
+- **High-Impact Animation Engine**: Optimized transition speeds for a "snappy" feel, with dynamic physics that make techniques "explode" into existence.
+- **Original Technique Restoration**: Authentically restored the core designs for *Red*, *Purple*, *Shrine*, and *Void* to match the original geometric patterns.
 - **Procedural Sound Engine**: Added a real-time audio system that generates unique synthesized sounds for every technique.
 - **Cinematic Overlays**: Implemented Kanji flash effects, screen shakes, and chromatic aberration for high-impact visuals.
 

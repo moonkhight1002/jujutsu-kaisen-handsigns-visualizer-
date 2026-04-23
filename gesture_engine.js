@@ -90,8 +90,8 @@ export class GestureEngine {
 
         // --- Priority Logic ---
 
-        // INFINITE VOID: index & middle crossed, ring & pinky curled
-        if (idxExt && midExt && isCrossing && ringCurled && pinkCurled) return { gesture: 'void' };
+        // INFINITE VOID: index & middle crossed, ring & pinky STRICTLY curled
+        if (idxExt && midExt && isCrossing && ringFist && pinkFist) return { gesture: 'void' };
 
         // HOLLOW PURPLE: pinch + other 3 clearly extended
         if (isPinching && midExt && ringExt && pinkExt) return { gesture: 'purple' };
@@ -133,10 +133,10 @@ export class GestureEngine {
             return 'shadowgarden';
         }
 
-        // MAHORAGA: Thumbs touching, hands upright, WRISTS CLOSE
-        const h1Upright = h1[8].y < h1[0].y;
-        const h2Upright = h2[8].y < h2[0].y;
-        if (thumbDist < avgScale * 0.8 && palmDist < avgScale * 1.2 && h1Upright && h2Upright) {
+        // MAHORAGA: Thumbs touching, hands upright, fingers SPREAD (Wheel shape)
+        const h1Open = this.analyzeHand(h1).gesture === 'shrine';
+        const h2Open = this.analyzeHand(h2).gesture === 'shrine';
+        if (thumbDist < avgScale * 1.0 && palmDist < avgScale * 1.5 && h1Upright && h2Upright && h1Open && h2Open) {
             return 'mahoraga';
         }
 

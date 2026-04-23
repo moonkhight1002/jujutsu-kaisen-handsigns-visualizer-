@@ -166,13 +166,13 @@
             letter-spacing: 0.05em;
         }
         @keyframes kanjiCrash {
-            0%   { opacity: 1;   transform: translate(-50%,-50%) scale(2.2); filter: blur(8px); }
-            15%  { opacity: 1;   transform: translate(-50%,-50%) scale(1.0); filter: blur(0px); }
-            60%  { opacity: 0.8; transform: translate(-50%,-50%) scale(0.97); }
-            100% { opacity: 0;   transform: translate(-50%,-50%) scale(0.9); filter: blur(4px); }
+            0%   { opacity: 0;   transform: translate(-50%,-50%) scale(4); filter: blur(20px) brightness(2); }
+            15%  { opacity: 1;   transform: translate(-50%,-50%) scale(1.0); filter: blur(0px) brightness(1); }
+            80%  { opacity: 1; transform: translate(-50%,-50%) scale(0.98); }
+            100% { opacity: 0;   transform: translate(-50%,-50%) scale(0.95); filter: blur(5px); }
         }
         .kanji-active {
-            animation: kanjiCrash 1.4s cubic-bezier(0.16,1,0.3,1) forwards !important;
+            animation: kanjiCrash 0.9s cubic-bezier(0.19, 1, 0.22, 1) forwards !important;
         }
     </style>
 
@@ -237,7 +237,8 @@
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.4, 0.8);
+        bloomPass.threshold = 0.2; // Lower threshold = more things glow
         composer.addPass(bloomPass);
 
         // ── CHROMATIC ABERRATION PASS ─────────────────────────────────────
@@ -261,7 +262,8 @@
         const chromaPass = new ShaderPass(chromaShader);
         composer.addPass(chromaPass);
         let chromaTarget = 0.0;
-        let glitchIntensity = 0.0; // New: for spatial distortion
+        let transitionAlpha = 0.0; // Snappiness controller
+        let currentChaos = 0.0;     // Turbulence intensity
 
         // ── WEB AUDIO SOUND ENGINE ────────────────────────────────────────
         const AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -347,99 +349,52 @@
         //  Each function returns {x, y, z, r, g, b, s}
         // ═══════════════════════════════════════════════════════
 
-        // RED — Repulsive force shockwave expanding radially
+        // RED — Spiral arm configuration (Original)
         function getRed(i) {
-            if (i < COUNT * 0.08) {
-                // Blinding crimson core
-                const rc = Math.random() * 6;
-                const tc = Math.random() * 6.28, pc = Math.acos(2 * Math.random() - 1);
-                return { x: rc * Math.sin(pc) * Math.cos(tc), y: rc * Math.sin(pc) * Math.sin(tc), z: rc * Math.cos(pc), r: 6, g: 6, b: 6, s: 4.0 };
-            } else if (i < COUNT * 0.25) {
-                // Shockwave ring — thin disc of red energy
-                const angle = Math.random() * Math.PI * 2;
-                const radius = 28 + (Math.random() - 0.5) * 4;
-                return { x: radius * Math.cos(angle), y: (Math.random() - 0.5) * 3, z: radius * Math.sin(angle), r: 2.0, g: 0.05, b: 0, s: 2.0 };
+            if (i < COUNT * 0.1) {
+                const r = Math.random() * 9;
+                const theta = Math.random() * 6.28; const phi = Math.acos(2 * Math.random() - 1);
+                return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 3, g: 0.1, b: 0.1, s: 2.5 };
             } else {
-                // Radial debris blasted outward
-                const angle = Math.random() * Math.PI * 2;
-                const elev = (Math.random() - 0.5) * Math.PI * 0.5;
-                const dist = 35 + Math.random() * 30;
-                return { x: dist * Math.cos(elev) * Math.cos(angle), y: dist * Math.sin(elev), z: dist * Math.cos(elev) * Math.sin(angle), r: 1.5, g: 0.0, b: 0.0, s: 1.0 };
+                const armCount = 3; const t = (i / COUNT); 
+                const angle = t * 15 + ((i % armCount) * (Math.PI * 2 / armCount));
+                const radius = 2 + (t * 40); 
+                return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * (10 * t), r: 0.8, g: 0, b: 0, s: 1.0 };
             }
         }
 
-        // INFINITE VOID — Crushing space vortex, infinite stimuli
+        // INFINITE VOID — Horizon ring and celestial sphere (Original)
         function getVoid(i) {
-            if (i < COUNT * 0.05) {
-                // Blinding singularity at center
-                const rv = Math.random() * 3;
-                const tv = Math.random() * 6.28, pv = Math.acos(2 * Math.random() - 1);
-                return { x: rv * Math.sin(pv) * Math.cos(tv), y: rv * Math.sin(pv) * Math.sin(tv), z: rv * Math.cos(pv), r: 5, g: 5, b: 8, s: 3.5 };
-            } else if (i < COUNT * 0.35) {
-                // Spiral vortex arms sucking in
-                const arm = Math.floor(Math.random() * 3);
-                const t = Math.random() * Math.PI * 4;
-                const r = 5 + t * 4.5;
-                const offset = (arm / 3) * Math.PI * 2;
-                return { x: r * Math.cos(t + offset), y: (Math.random() - 0.5) * 20, z: r * Math.sin(t + offset), r: 0.2, g: 0.5, b: 1.5, s: 1.2 };
-            } else if (i < COUNT * 0.5) {
-                // Event horizon ring
+            if (i < COUNT * 0.15) {
                 const angle = Math.random() * Math.PI * 2;
-                const rh = 38 + (Math.random() - 0.5) * 3;
-                return { x: rh * Math.cos(angle), y: (Math.random() - 0.5) * 2, z: rh * Math.sin(angle), r: 1, g: 2, b: 5, s: 2.5 };
+                return { x: 26 * Math.cos(angle), y: 26 * Math.sin(angle), z: (Math.random()-0.5) * 1, r: 1, g: 1, b: 1, s: 2.5 };
             } else {
-                // Deep cosmic background
-                const radius = 60 + Math.random() * 80;
+                const radius = 30 + Math.random() * 90;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
-                return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi), r: 0.05, g: 0.1, b: 0.6, s: 0.8 };
+                return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi), r: 0.1, g: 0.6, b: 1.0, s: 0.7 };
             }
         }
 
-        // HOLLOW PURPLE — Massive destructive orb
+        // HOLLOW PURPLE — Dense purple orb (Original)
         function getPurple(i) {
-            if (i < COUNT * 0.1) {
-                // Dense white-hot core
-                const rp = Math.random() * 5;
-                const tp = Math.random() * 6.28, pp = Math.acos(2 * Math.random() - 1);
-                return { x: rp * Math.sin(pp) * Math.cos(tp), y: rp * Math.sin(pp) * Math.sin(tp), z: rp * Math.cos(pp), r: 4, g: 4, b: 5, s: 3.0 };
-            } else if (i < COUNT * 0.5) {
-                // Main orb shell — dense purple sphere
-                const rp2 = 15 + Math.random() * 5;
-                const tp2 = Math.random() * 6.28, pp2 = Math.acos(2 * Math.random() - 1);
-                return { x: rp2 * Math.sin(pp2) * Math.cos(tp2), y: rp2 * Math.sin(pp2) * Math.sin(tp2), z: rp2 * Math.cos(pp2), r: 1.2, g: 0.0, b: 2.5, s: 2.0 };
-            } else {
-                // Orbiting debris/annihilation trail
-                const angle = Math.random() * Math.PI * 2;
-                const tilt = (Math.random() - 0.5) * Math.PI;
-                const ro = 25 + Math.random() * 30;
-                return { x: ro * Math.cos(angle) * Math.cos(tilt), y: ro * Math.sin(tilt), z: ro * Math.sin(angle) * Math.cos(tilt), r: 0.6, g: 0.0, b: 1.0, s: 0.8 };
-            }
+            if (Math.random() > 0.8) return { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100, z: (Math.random() - 0.5) * 100, r: 0.5, g: 0.5, b: 0.7, s: 0.8 };
+            const r = 20; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
+            return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.6, g: 0.5, b: 1.0, s: 2.5 };
         }
 
-        // MALEVOLENT SHRINE — Infinite Buddhist cursed cuts
+        // MALEVOLENT SHRINE — Pillars, floor, and cursed dome (Original)
         function getShrine(i) {
-            if (i < COUNT * 0.15) {
-                // Bone-white pillars at 4 cardinal points
-                const pillar = Math.floor((i / COUNT) * 4) % 4;
-                const angle = (pillar / 4) * Math.PI * 2;
-                const height = (Math.random() - 0.1) * 60;
-                return { x: Math.cos(angle) * 20, y: height, z: Math.sin(angle) * 20, r: 1.0, g: 0.9, b: 0.7, s: 0.7 };
-            } else if (i < COUNT * 0.35) {
-                // Dark crimson floor plane with cursed markings
-                const fx = (Math.random() - 0.5) * 100, fz = (Math.random() - 0.5) * 100;
-                return { x: fx, y: -28, z: fz, r: 0.4, g: 0, b: 0, s: 0.4 };
-            } else if (i < COUNT * 0.6) {
-                // Radial cursed cuts slashing outward (∞ pattern)
-                const cutAngle = (i / COUNT) * Math.PI * 8;
-                const cutDist = 10 + Math.random() * 45;
-                return { x: cutDist * Math.cos(cutAngle), y: (Math.random() - 0.5) * 40, z: cutDist * Math.sin(cutAngle), r: 0.8, g: 0.0, b: 0.0, s: 0.6 };
-            } else {
-                // Blood helix spiraling upward
-                const bt = (i / COUNT) * Math.PI * 12;
-                const br = 12 + Math.sin(bt * 0.3) * 6;
-                return { x: br * Math.cos(bt), y: -28 + (bt / (Math.PI * 12)) * 80, z: br * Math.sin(bt), r: 0.7, g: 0.0, b: 0.0, s: 0.5 };
-            }
+            const total = COUNT;
+            if (i < total * 0.3) return { x: (Math.random()-0.5)*80, y: -15, z: (Math.random()-0.5)*80, r: 0.4, g: 0, b: 0, s: 0.8 };
+            else if (i < total * 0.4) {
+                const px = ((i%4)<2?1:-1)*12; const pz = ((i%4)%2==0?1:-1)*8;
+                return { x: px+(Math.random()-0.5)*2, y: -15+Math.random()*30, z: pz+(Math.random()-0.5)*2, r: 0.2, g: 0.2, b: 0.2, s: 0.6 };
+            } else if (i < total * 0.6) {
+                const t = Math.random() * Math.PI * 2; const rad = Math.random() * 30;
+                const curve = Math.pow(rad/30, 2) * 10; 
+                return { x: rad*Math.cos(t), y: 15 - curve + (Math.random()*2), z: rad*Math.sin(t)*0.6, r: 0.6, g: 0, b: 0, s: 0.6 };
+            } else return { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
         }
 
         // FUGA (OPEN) — Divine flame arrow
@@ -567,21 +522,17 @@
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
         let glowColor = '#00ffff';
+        let latestHandResults = null;
+        let lastHandUpdate = 0;
 
-        const gestureEngine = new GestureEngine(10); // Higher buffer for smoothness
+        const gestureEngine = new GestureEngine(6); // Reduced buffer for snappier response
 
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
         hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
 
         hands.onResults((results) => {
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            
-            if (results.multiHandLandmarks) {
-                results.multiHandLandmarks.forEach((lm) => {
-                    drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 5 });
-                    drawLandmarks(canvasCtx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
-                });
-            }
+            latestHandResults = results.multiHandLandmarks;
+            lastHandUpdate = Date.now();
 
             const detected = gestureEngine.detect(results.multiHandLandmarks);
             updateState(detected);
@@ -641,6 +592,13 @@
                 blackflash:0.08, boogie:0.05, nue:0.02, neutral:0.0
             };
             chromaTarget = chromaMap[tech] ?? 0.0;
+            transitionAlpha = tech === 'neutral' ? 0.3 : 1.0; // Burst of speed on change
+            
+            const chaosMap = {
+                shrine:0.0, purple:0.0, void:0.0, red:0.0, fuga:0.5, 
+                worldslash:0.8, blackflash:1.2, neutral:0.0
+            };
+            currentChaos = chaosMap[tech] ?? 0.1;
 
             for (let i = 0; i < COUNT; i++) {
                 let p;
@@ -832,14 +790,24 @@
             const siz = particles.geometry.attributes.size.array;
 
             // ─── LERPING & SPEED PHYSICS ──────────────────────────────────────────
-            const lerpSpeed = liveUpdateTechs.has(currentTech) ? 0.45 : 0.12;
+            // Snappiness: lerpSpeed boosted by transitionAlpha
+            const baseSpeed = liveUpdateTechs.has(currentTech) ? 0.45 : 0.15;
+            const lerpSpeed = Math.min(0.95, baseSpeed + (transitionAlpha * 0.7));
+            
+            const chaosIntensity = currentChaos * (1.0 + transitionAlpha * 2.0);
+
             for (let i = 0; i < COUNT * 3; i++) {
-                pos[i] += (targetPositions[i] - pos[i]) * lerpSpeed;
+                const target = targetPositions[i];
+                const jitter = (Math.random() - 0.5) * chaosIntensity;
+                pos[i] += (target - pos[i]) * lerpSpeed + jitter;
                 col[i] += (targetColors[i] - col[i]) * lerpSpeed;
             }
             for (let i = 0; i < COUNT; i++) {
-                siz[i] += (targetSizes[i] - siz[i]) * 0.12;
+                siz[i] += (targetSizes[i] - siz[i]) * 0.2;
             }
+            
+            // Decay transition burst
+            transitionAlpha *= 0.92;
 
             // ─── ROTATION & CINEMATIC EFFECTS ─────────────────────────────────────
             if (currentTech === 'red') {
@@ -853,12 +821,14 @@
                 particles.rotation.z += 0.015;
             } else if (currentTech === 'shrine') {
                 particles.rotation.set(0, 0, 0);
-                if (Math.random() > 0.8) { // IMPACT SLASHES
-                    const start = (Math.random()-0.5)*80;
-                    for(let i=0; i<60; i++) {
+                if (Math.random() > 0.7) { // IMPACT SLASHES - more frequent
+                    const start = (Math.random()-0.5)*100;
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    for(let i=0; i<100; i++) {
                         const idx = Math.floor(Math.random()*COUNT)*3;
-                        pos[idx] = start + i; pos[idx+1] = (Math.random()-0.5)*40;
-                        col[idx]=4; col[idx+1]=4; col[idx+2]=4;
+                        pos[idx] = (start + i * dir) * 0.8; 
+                        pos[idx+1] = (Math.random()-0.5)*50;
+                        col[idx]=6; col[idx+1]=6; col[idx+2]=6; // Brighter slashes
                     }
                 }
             } else if (currentTech === 'fuga') {
@@ -868,9 +838,10 @@
                 particles.rotation.z += 0.08;
                 particles.rotation.x = 0.5;
             } else if (currentTech === 'worldslash' || currentTech === 'blackflash') {
-                const glitch = shakeIntensity * 12;
+                const glitch = shakeIntensity * 25 * (0.5 + transitionAlpha);
                 renderer.domElement.style.left = `${(Math.random()-0.5)*glitch}px`;
                 renderer.domElement.style.top = `${(Math.random()-0.5)*glitch}px`;
+                if (Math.random() > 0.9) chromaPass.uniforms.amount.value = 0.15; // Glitch spike
             } else {
                 renderer.domElement.style.left = '0px';
                 renderer.domElement.style.top = '0px';
@@ -883,6 +854,15 @@
 
             // Chromatic aberration lerp
             chromaPass.uniforms.amount.value += (chromaTarget - chromaPass.uniforms.amount.value) * 0.1;
+
+            // ─── HAND LANDMARK DRAWING (Synced with Frame) ───────────────────────
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            if (latestHandResults && (Date.now() - lastHandUpdate < 150)) {
+                latestHandResults.forEach((lm) => {
+                    drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 5 });
+                    drawLandmarks(canvasCtx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
+                });
+            }
 
             composer.render();
         }
