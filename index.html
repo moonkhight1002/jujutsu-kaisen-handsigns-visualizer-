@@ -537,11 +537,15 @@
         hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
 
         hands.onResults((results) => {
-            latestHandResults = results.multiHandLandmarks;
-            lastHandUpdate = Date.now();
+            try {
+                latestHandResults = results.multiHandLandmarks;
+                lastHandUpdate = Date.now();
 
-            const detected = gestureEngine.detect(results.multiHandLandmarks);
-            updateState(detected);
+                const detected = gestureEngine.detect(results.multiHandLandmarks);
+                updateState(detected);
+            } catch (err) {
+                console.error("Hand Tracking Loop Error:", err);
+            }
         });
 
         const flashEl = document.getElementById('flash-overlay');
