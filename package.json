@@ -1,0 +1,13 @@
+{
+  "name": "jjk-visualizer",
+  "version": "1.0.0",
+  "description": "Jujutsu Kaisen Hand Signs Visualizer",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}

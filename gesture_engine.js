@@ -18,29 +18,34 @@ export class GestureEngine {
      * @returns {string} The detected gesture
      */
     detect(multiHandLandmarks) {
-        if (!multiHandLandmarks || multiHandLandmarks.length === 0) {
+        try {
+            if (!multiHandLandmarks || multiHandLandmarks.length === 0) {
+                return this.updateBuffer('neutral');
+            }
+
+            const hands = multiHandLandmarks;
+
+            // Two-hand gestures take priority
+            if (hands.length === 2) {
+                const twoHandGesture = this.analyzeTwoHands(hands[0], hands[1]);
+                if (twoHandGesture !== 'neutral') {
+                    return this.updateBuffer(twoHandGesture);
+                }
+            }
+
+            // Single hand: pick first non-neutral result from any hand
+            for (const lm of hands) {
+                const result = this.analyzeHand(lm);
+                if (result.gesture !== 'neutral') {
+                    return this.updateBuffer(result.gesture);
+                }
+            }
+
             return this.updateBuffer('neutral');
+        } catch (error) {
+            console.error("GestureEngine Detection Error:", error);
+            return this.lastGesture; // Return last known good gesture to prevent total crash
         }
-
-        const hands = multiHandLandmarks;
-
-        // Two-hand gestures take priority
-        if (hands.length === 2) {
-            const twoHandGesture = this.analyzeTwoHands(hands[0], hands[1]);
-            if (twoHandGesture !== 'neutral') {
-                return this.updateBuffer(twoHandGesture);
-            }
-        }
-
-        // Single hand: pick first non-neutral result from any hand
-        for (const lm of hands) {
-            const result = this.analyzeHand(lm);
-            if (result.gesture !== 'neutral') {
-                return this.updateBuffer(result.gesture);
-            }
-        }
-
-        return this.updateBuffer('neutral');
     }
 
     /**
@@ -134,6 +139,8 @@ export class GestureEngine {
         }
 
         // MAHORAGA: Thumbs touching, hands upright, fingers SPREAD (Wheel shape)
+        const h1Upright = h1[9].y < h1[0].y;
+        const h2Upright = h2[9].y < h2[0].y;
         const h1Open = this.analyzeHand(h1).gesture === 'shrine';
         const h2Open = this.analyzeHand(h2).gesture === 'shrine';
         if (thumbDist < avgScale * 1.0 && palmDist < avgScale * 1.5 && h1Upright && h2Upright && h1Open && h2Open) {
